@@ -4,7 +4,7 @@ Provides JSON API endpoints per API_SPEC.md and HTML page routes per ARCHITECTUR
 """
 
 from typing import Optional
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request
 
 import database
 import simulator
@@ -221,6 +221,16 @@ def page_prevention():
 @app.route("/comparison")
 def page_comparison():
     return render_template("comparison.html")
+
+
+@app.route("/compare")
+def page_compare_alias():
+    return redirect("/comparison")
+
+
+@app.route("/history")
+def page_history_alias():
+    return redirect("/comparison")
 
 
 @app.route("/overview")
