@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — RaceGuard{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <span class="eyebrow">Concurrency, demonstrated</span>
+  <h1>Welcome to RaceGuard</h1>
+  <p class="lead">See real Python threads corrupt shared data, then watch a mutex put things right.</p>
+  <hr class="header-divider">
+</header>
+
+<section class="grid-2" aria-label="Feature modules">
+  <!-- Card I: Simulator -->
+  <article class="frame" style="display:flex; flex-direction:column; justify-content:space-between;">
+    <div>
+      <span class="eyebrow" style="margin-bottom:0.25rem;">Module I</span>
+      <h2>Thread Simulator</h2>
+      <p style="color:var(--ink-soft); font-size:0.95rem; margin-top:0.5rem;">
+        Configure threads, operation and iterations, then run.
+      </p>
+    </div>
+    <div style="margin-top:1.5rem;">
+      <a href="/simulator" class="btn btn-secondary">Open Simulator &rarr;</a>
+    </div>
+  </article>
+
+  <!-- Card II: Detection -->
+  <article class="frame" style="display:flex; flex-direction:column; justify-content:space-between;">
+    <div>
+      <span class="eyebrow" style="margin-bottom:0.25rem;">Module II</span>
+      <h2>Race Detection</h2>
+      <p style="color:var(--ink-soft); font-size:0.95rem; margin-top:0.5rem;">
+        See exactly how many updates were lost.
+      </p>
+    </div>
+    <div style="margin-top:1.5rem;">
+      <a href="/detection" class="btn btn-secondary">Open Detection &rarr;</a>
+    </div>
+  </article>
+
+  <!-- Card III: Prevention -->
+  <article class="frame" style="display:flex; flex-direction:column; justify-content:space-between;">
+    <div>
+      <span class="eyebrow" style="margin-bottom:0.25rem;">Module III</span>
+      <h2>Race Prevention</h2>
+      <p style="color:var(--ink-soft); font-size:0.95rem; margin-top:0.5rem;">
+        Watch the mutex deliver the exact result.
+      </p>
+    </div>
+    <div style="margin-top:1.5rem;">
+      <a href="/prevention" class="btn btn-secondary">Open Prevention &rarr;</a>
+    </div>
+  </article>
+
+  <!-- Card IV: Comparison -->
+  <article class="frame" style="display:flex; flex-direction:column; justify-content:space-between;">
+    <div>
+      <span class="eyebrow" style="margin-bottom:0.25rem;">Module IV</span>
+      <h2>Result Comparison</h2>
+      <p style="color:var(--ink-soft); font-size:0.95rem; margin-top:0.5rem;">
+        Compare both modes side by side with charts and logs.
+      </p>
+    </div>
+    <div style="margin-top:1.5rem;">
+      <a href="/comparison" class="btn btn-secondary">Open Comparison &rarr;</a>
+    </div>
+  </article>
+</section>
+
+<!-- Stats Strip -->
+<section aria-label="System statistics" style="margin-top:2.5rem;">
+  <div class="stat-strip">
+    <div class="stat-item">
+      <div id="stat-total-runs" class="stat-number">—</div>
+      <div class="stat-label">Total Runs</div>
+    </div>
+    <div class="stat-item">
+      <div id="stat-races-detected" class="stat-number danger">—</div>
+      <div class="stat-label">Races Detected</div>
+    </div>
+    <div class="stat-item">
+      <div id="stat-races-prevented" class="stat-number success">—</div>
+      <div class="stat-label">Races Prevented</div>
+    </div>
+  </div>
+</section>
+
+<!-- Theory Link Footer -->
+<div style="text-align:center; margin-top:3rem;">
+  <p style="color:var(--ink-soft); font-size:0.95rem;">
+    Want to understand the underlying mechanics of thread interleaving?
+    <br>
+    <a href="/overview" style="font-weight:600; text-decoration:underline;">Read the theoretical foundation in Overview &rarr;</a>
+  </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const stats = await fetchJSON('/api/stats');
+      document.getElementById('stat-total-runs').textContent = formatNumber(stats.total_runs);
+      document.getElementById('stat-races-detected').textContent = formatNumber(stats.races_detected);
+      document.getElementById('stat-races-prevented').textContent = formatNumber(stats.races_prevented);
+    } catch (e) {
+      console.error('Failed to load stats:', e);
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Result Comparison — RaceGuard{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <span class="eyebrow">Module IV &middot; Comparative Benchmark</span>
+  <h1>Result Comparison</h1>
+  <p class="lead">Run synchronized and unsynchronized threads under identical conditions and evaluate the disparity.</p>
+  <hr class="header-divider">
+</header>
+
+<!-- Benchmark Form Frame -->
+<section class="frame" aria-label="Comparison benchmark controls" style="margin-bottom:2.5rem;">
+  <h2 style="font-size:1.35rem; margin-bottom:1.25rem;">Benchmark Parameters</h2>
+  <form id="compare-form">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; align-items:start;">
+      <!-- Threads -->
+      <div class="form-group" style="margin-bottom:0;">
+        <label for="comp-threads" class="form-label">Threads (1 – 64)</label>
+        <input type="number" id="comp-threads" name="threads" class="form-input" min="1" max="64" value="8" required>
+      </div>
+
+      <!-- Operation -->
+      <div class="form-group" style="margin-bottom:0;">
+        <span class="form-label">Operation</span>
+        <div class="segmented-control" role="radiogroup">
+          <input type="radio" id="comp-op-inc" name="operation" value="increment" checked>
+          <label for="comp-op-inc">+ Increment</label>
+
+          <input type="radio" id="comp-op-dec" name="operation" value="decrement">
+          <label for="comp-op-dec">&minus; Decrement</label>
+        </div>
+      </div>
+
+      <!-- Iterations -->
+      <div class="form-group" style="margin-bottom:0;">
+        <label for="comp-iterations" class="form-label">Iterations per Thread</label>
+        <input type="number" id="comp-iterations" name="iterations" class="form-input" min="1" max="50000" value="1000" required>
+      </div>
+
+      <!-- Submit Button -->
+      <div style="display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
+        <button type="submit" id="btn-compare" class="btn btn-primary" style="height:44px; width:100%;">
+          Run Comparison
+        </button>
+      </div>
+    </div>
+    <div id="comp-progress" class="loading-progress" aria-hidden="true"></div>
+  </form>
+</section>
+
+<!-- Side-by-side Results & Chart Grid -->
+<div class="grid-2" style="margin-bottom:3rem;">
+  <!-- Side-by-side Table -->
+  <section class="frame" aria-label="Comparison metrics table">
+    <h3 style="font-size:1.2rem; margin-bottom:1rem;">Metrics Comparison</h3>
+    <div id="compare-table-empty" class="empty-state" style="padding:2rem 1rem;">
+      <div class="empty-state-icon" style="font-size:1.8rem;">&empty;</div>
+      <p class="empty-state-text" style="font-size:0.875rem;">
+        Execute the benchmark above to view side-by-side comparative metrics.
+      </p>
+    </div>
+
+    <div id="compare-table-content" class="table-container" style="display:none; margin:0;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:36%;">Metric</th>
+            <th style="width:32%; color:var(--danger);">Without Mutex</th>
+            <th style="width:32%; color:var(--success);">With Mutex</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Expected Value</td>
+            <td id="tbl-no-expected">—</td>
+            <td id="tbl-mu-expected">—</td>
+          </tr>
+          <tr>
+            <td>Actual Final Value</td>
+            <td id="tbl-no-actual" style="font-weight:bold; color:var(--danger);">—</td>
+            <td id="tbl-mu-actual" style="font-weight:bold; color:var(--success);">—</td>
+          </tr>
+          <tr>
+            <td>Lost Updates</td>
+            <td id="tbl-no-lost" style="color:var(--danger);">—</td>
+            <td id="tbl-mu-lost" style="color:var(--success);">—</td>
+          </tr>
+          <tr>
+            <td>Race Detected?</td>
+            <td id="tbl-no-race">—</td>
+            <td id="tbl-mu-race">—</td>
+          </tr>
+          <tr>
+            <td>Execution Duration</td>
+            <td id="tbl-no-duration">—</td>
+            <td id="tbl-mu-duration">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Chart.js Bar Chart -->
+  <section class="frame" aria-label="Graphical comparison">
+    <h3 style="font-size:1.2rem; margin-bottom:1rem;">Visual Distribution</h3>
+    <div id="chart-empty" class="empty-state" style="padding:2rem 1rem;">
+      <div class="empty-state-icon" style="font-size:1.8rem;">&#x1F4CA;</div>
+      <p class="empty-state-text" style="font-size:0.875rem;">
+        Run the benchmark to generate the Expected vs. Actual chart.
+      </p>
+    </div>
+    <div id="chart-wrapper" style="position:relative; height:280px; width:100%; display:none;">
+      <canvas id="comparisonChart"></canvas>
+    </div>
+  </section>
+</div>
+
+<!-- SQLite Run Log Table -->
+<section class="frame" aria-label="Historical execution logs">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <h3 style="font-size:1.25rem; margin-bottom:0.25rem;">Execution Logs (SQLite)</h3>
+      <p style="font-size:0.85rem; color:var(--ink-soft); margin:0;">
+        Chronological audit of simulation runs stored in <code style="font-family:var(--font-mono); background:var(--paper); padding:1px 4px;">raceguard.db</code>
+      </p>
+    </div>
+    <button id="btn-clear-logs" class="btn btn-secondary" style="font-size:0.75rem; padding:0.5rem 1rem;">
+      Clear Logs
+    </button>
+  </div>
+
+  <div id="logs-empty" class="empty-state" style="display:none; padding:2rem 0;">
+    <p class="empty-state-text">No simulation runs recorded in the database yet.</p>
+  </div>
+
+  <div id="logs-table-wrapper" class="table-container" style="margin:0;">
+    <table class="data-table" id="logs-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Timestamp</th>
+          <th>Operation</th>
+          <th>Mode</th>
+          <th>Threads &times; Iters</th>
+          <th>Expected</th>
+          <th>Actual</th>
+          <th>Lost</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="logs-table-body">
+        <!-- Rows dynamically injected -->
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js with vendor fallback -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+<script>
+  if (typeof Chart === 'undefined') {
+    document.write('<script src="{{ url_for("static", filename="vendor/chart.umd.min.js") }}"><\/script>');
+  }
+</script>
+<script src="{{ url_for('static', filename='js/comparison.js') }}"></script>
+{% endblock %}

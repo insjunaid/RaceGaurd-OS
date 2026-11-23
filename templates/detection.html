@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Race Detection — RaceGuard{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <span class="eyebrow">Module II &middot; Diagnostic Inspection</span>
+  <h1>Race Detection</h1>
+  <p class="lead">Inspect data anomalies and lost updates caused by unsynchronized concurrent thread execution.</p>
+  <hr class="header-divider">
+</header>
+
+<!-- Empty State (Shown when no no_mutex runs exist) -->
+<section id="detection-empty" class="frame" style="display:none; max-width:680px; margin:0 auto;">
+  <div class="empty-state">
+    <div class="empty-state-icon" style="color:var(--danger);">&empty;</div>
+    <h2 class="empty-state-title">No Unsynchronized Runs Found</h2>
+    <p class="empty-state-text">
+      There are currently no recorded runs executed without a mutex lock. Run a simulation without mutex in the Thread Simulator to inspect race conditions here.
+    </p>
+    <a href="/simulator" class="btn btn-primary">Go to Simulator &rarr;</a>
+  </div>
+</section>
+
+<!-- Active Detection Card -->
+<section id="detection-card-container" style="display:none; max-width:840px; margin:0 auto;">
+  <article class="frame danger" style="padding:36px;">
+    <!-- Status Header -->
+    <div class="status-header">
+      <span class="status-icon" style="font-size:1.75rem;">✕</span>
+      <div>
+        <span class="eyebrow" style="color:var(--danger); margin-bottom:0.15rem;">Diagnostic Report</span>
+        <h2 class="status-title" style="color:var(--danger); font-size:1.85rem;">Race Condition Detected!</h2>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <p class="status-body" style="font-size:1.05rem; margin-top:0.75rem;">
+      Threads overwrote each other's updates. The final value does not match the expected result.
+    </p>
+
+    <!-- Context Meta Box -->
+    <div style="background:var(--surface); border:1px solid var(--rule); padding:1rem 1.25rem; margin:1.5rem 0; font-family:var(--font-mono); font-size:0.875rem;">
+      <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+        <span>Operation: <strong id="det-op" style="text-transform:capitalize;">—</strong></span>
+        <span>Threads: <strong id="det-threads">—</strong></span>
+        <span>Iterations / thread: <strong id="det-iters">—</strong></span>
+        <span>Duration: <strong id="det-duration">—</strong></span>
+      </div>
+    </div>
+
+    <!-- Three Stats -->
+    <div class="stat-strip" style="background:var(--surface); border:1px solid var(--rule); margin:1.5rem 0; padding:1.5rem 1rem;">
+      <div class="stat-item">
+        <div id="det-expected" class="stat-number">—</div>
+        <div class="stat-label">Expected Value</div>
+      </div>
+      <div class="stat-item">
+        <div id="det-actual" class="stat-number danger">—</div>
+        <div class="stat-label">Actual Final Value</div>
+      </div>
+      <div class="stat-item">
+        <div id="det-lost" class="stat-number danger">—</div>
+        <div class="stat-label">Lost Updates</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-top:2rem;">
+      <div style="display:flex; gap:1rem; align-items:center;">
+        <button id="btn-run-again" class="btn btn-danger">
+          Run Again
+        </button>
+        <a href="/simulator" class="btn btn-secondary">Go to Simulator</a>
+      </div>
+      <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--ink-soft);">
+        Recorded at <span id="det-timestamp">—</span> (ID #<span id="det-id">—</span>)
+      </span>
+    </div>
+
+    <div id="det-progress" class="loading-progress" aria-hidden="true"></div>
+  </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/detection.js') }}"></script>
+{% endblock %}

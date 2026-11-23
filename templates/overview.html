@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Overview & Theory — RaceGuard{% endblock %}
+
+{% block head_extra %}
+<style>
+  .editorial-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+  .drop-cap::first-letter {
+    font-family: var(--font-serif);
+    font-size: 3.8rem;
+    float: left;
+    line-height: 0.82;
+    margin-right: 0.65rem;
+    margin-top: 0.25rem;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .theory-section {
+    margin-bottom: 2.25rem;
+  }
+  .theory-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.4rem;
+  }
+  .theory-section p {
+    font-size: 1.05rem;
+    color: var(--ink);
+    line-height: 1.7;
+  }
+  @media (max-width: 760px) {
+    .editorial-columns {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <span class="eyebrow">Foundations &middot; Theoretical Principles</span>
+  <h1>Overview & Theory</h1>
+  <p class="lead">An exposition of race conditions, critical sections, and mutual exclusion in Python concurrency.</p>
+  <hr class="header-divider">
+</header>
+
+<!-- Two-Column Editorial Layout -->
+<div class="editorial-columns">
+  <!-- Left Column -->
+  <div>
+    <!-- Section 1 -->
+    <article class="theory-section">
+      <span class="eyebrow">Section 1</span>
+      <h2>1. What is a Race Condition?</h2>
+      <p class="drop-cap">
+        A race condition occurs when two or more threads access shared data at the same time and the final result depends on the unpredictable order in which they run. Because an operation like <code style="font-family:var(--font-mono); background:var(--surface); border:1px solid var(--rule); padding:1px 5px;">counter += 1</code> is really three steps (read, modify, write), another thread can slip in between those steps.
+      </p>
+    </article>
+
+    <!-- Section 2 -->
+    <article class="theory-section">
+      <span class="eyebrow">Section 2</span>
+      <h2>2. The Critical Section</h2>
+      <p>
+        The critical section is the part of code that touches shared data. If more than one thread can be inside it at once, updates can be lost. Reading a value before another thread finishes writing means working with a stale value, and the later write silently overwrites the earlier one.
+      </p>
+    </article>
+
+    <!-- Section 3 -->
+    <article class="theory-section">
+      <span class="eyebrow">Section 3</span>
+      <h2>3. The Increment Case</h2>
+      <p>
+        8 threads each increment a shared counter by 1 a total of 1,000 times. Expected result: 8 &times; 1,000 = <strong>8,000</strong>. Without synchronization, threads read stale values and overwrite each other's updates, so the final value is less than 8,000. RaceGuard flags this as a race condition.
+      </p>
+    </article>
+  </div>
+
+  <!-- Right Column -->
+  <div>
+    <!-- Section 4 -->
+    <article class="theory-section">
+      <span class="eyebrow">Section 4</span>
+      <h2>4. The Decrement Case</h2>
+      <p>
+        Start the counter at 8,000. 8 threads each subtract 1 a total of 1,000 times. Expected result: 8,000 &minus; 8 &times; 1,000 = <strong>0</strong>. Unsynchronized execution leaves an incorrect non-zero balance, because lost decrements leave the value higher than it should be.
+      </p>
+    </article>
+
+    <!-- Section 5 -->
+    <article class="theory-section">
+      <span class="eyebrow">Section 5</span>
+      <h2>5. Mutex Prevention</h2>
+      <p>
+        A mutex (mutual exclusion lock, <code style="font-family:var(--font-mono); background:var(--surface); border:1px solid var(--rule); padding:1px 5px;">threading.Lock</code> in Python) lets only one thread execute the critical section at a time. Other threads wait until the lock is released. This guarantees no data corruption and yields the exact expected result for both increment and decrement.
+      </p>
+    </article>
+
+    <!-- Section 7: Try it -->
+    <article class="theory-section" style="margin-top:2.5rem; background:var(--surface); border:1px solid var(--rule); padding:1.75rem;">
+      <span class="eyebrow">Section 7 &middot; Verification</span>
+      <h3 style="font-family:var(--font-serif); font-size:1.35rem; margin-bottom:0.5rem;">Explore in Practice</h3>
+      <p style="font-size:0.95rem; color:var(--ink-soft); margin-bottom:1.25rem;">
+        Put these theoretical concepts into practice with our interactive multi-threaded simulator.
+      </p>
+      <a href="/simulator" class="btn btn-primary">Open the Thread Simulator &rarr;</a>
+    </article>
+  </div>
+</div>
+
+<!-- Section 6: Key Formula Pull-Quote Frame -->
+<div style="margin-top:3rem;">
+  <blockquote class="frame" style="text-align:center; padding:32px 24px;">
+    <span class="eyebrow" style="color:var(--accent); margin-bottom:0.5rem;">Section 6 &middot; Key Invariant Formula</span>
+    <div class="mono" style="font-size:clamp(1.1rem, 2.5vw, 1.4rem); font-weight:700; color:var(--ink); margin-top:0.5rem;">
+      expected = initial &plusmn; (threads &times; iterations) &nbsp;&nbsp;&middot;&nbsp;&nbsp; lost updates = |expected &minus; actual|
+    </div>
+  </blockquote>
+</div>
+{% endblock %}

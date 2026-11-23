@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Race Prevention — RaceGuard{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <span class="eyebrow">Module III &middot; Synchronization Analysis</span>
+  <h1>Race Prevention</h1>
+  <p class="lead">Examine how mutual exclusion (Mutex) serializes critical section access to ensure strict consistency.</p>
+  <hr class="header-divider">
+</header>
+
+<!-- Empty State (Shown when no mutex runs exist) -->
+<section id="prevention-empty" class="frame" style="display:none; max-width:680px; margin:0 auto;">
+  <div class="empty-state">
+    <div class="empty-state-icon" style="color:var(--success);">&check;</div>
+    <h2 class="empty-state-title">No Synchronized Runs Found</h2>
+    <p class="empty-state-text">
+      There are currently no recorded runs executed with a mutex lock. Run a simulation with mutex in the Thread Simulator to verify race prevention here.
+    </p>
+    <a href="/simulator" class="btn btn-primary">Go to Simulator &rarr;</a>
+  </div>
+</section>
+
+<!-- Active Prevention Card -->
+<section id="prevention-card-container" style="display:none; max-width:880px; margin:0 auto;">
+  <article class="frame success" style="padding:36px;">
+    <!-- Status Header -->
+    <div class="status-header">
+      <span class="status-icon" style="font-size:1.75rem;">✓</span>
+      <div>
+        <span class="eyebrow" style="color:var(--success); margin-bottom:0.15rem;">Safety Verification</span>
+        <h2 class="status-title" style="color:var(--success); font-size:1.85rem;">Race Condition Prevented!</h2>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <p class="status-body" style="font-size:1.05rem; margin-top:0.75rem;">
+      Mutex lock ensures only one thread enters the critical section at a time, giving the exact expected value.
+    </p>
+
+    <!-- Context Meta Box -->
+    <div style="background:var(--surface); border:1px solid var(--rule); padding:1rem 1.25rem; margin:1.5rem 0; font-family:var(--font-mono); font-size:0.875rem;">
+      <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+        <span>Operation: <strong id="prev-op" style="text-transform:capitalize;">—</strong></span>
+        <span>Threads: <strong id="prev-threads">—</strong></span>
+        <span>Iterations / thread: <strong id="prev-iters">—</strong></span>
+        <span>Duration: <strong id="prev-duration">—</strong></span>
+      </div>
+    </div>
+
+    <!-- Three Stats -->
+    <div class="stat-strip" style="background:var(--surface); border:1px solid var(--rule); margin:1.5rem 0; padding:1.5rem 1rem;">
+      <div class="stat-item">
+        <div id="prev-expected" class="stat-number">—</div>
+        <div class="stat-label">Expected Value</div>
+      </div>
+      <div class="stat-item">
+        <div id="prev-actual" class="stat-number success">—</div>
+        <div class="stat-label">Actual Final Value</div>
+      </div>
+      <div class="stat-item">
+        <div id="prev-lost" class="stat-number success">—</div>
+        <div class="stat-label">Lost Updates</div>
+      </div>
+    </div>
+
+    <!-- Illustrated Sequence (Pure CSS/Text) -->
+    <div style="margin:2.5rem 0 1.5rem 0;">
+      <h3 style="font-size:1.1rem; font-family:var(--font-serif); margin-bottom:1rem;">
+        Mutex Synchronization Lifecycle
+      </h3>
+      <div class="prevention-sequence" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
+        
+        <div style="background:var(--surface); border:1px solid var(--rule); padding:1.25rem; border-top:3px solid var(--accent);">
+          <span class="mono" style="font-size:0.75rem; color:var(--ink-soft); text-transform:uppercase;">Step 1 &middot; Acquisition</span>
+          <h4 style="font-size:1rem; margin:0.4rem 0 0.5rem 0; font-family:var(--font-sans);">Lock Acquired</h4>
+          <p style="font-size:0.85rem; color:var(--ink-soft); margin:0;">
+            Active thread claims <code style="font-family:var(--font-mono); background:var(--paper); padding:1px 4px;">threading.Lock</code>. All competing threads block and wait.
+          </p>
+        </div>
+
+        <div style="background:var(--surface); border:1px solid var(--rule); padding:1.25rem; border-top:3px solid var(--success);">
+          <span class="mono" style="font-size:0.75rem; color:var(--ink-soft); text-transform:uppercase;">Step 2 &middot; Atomic Guard</span>
+          <h4 style="font-size:1rem; margin:0.4rem 0 0.5rem 0; font-family:var(--font-sans);">Critical Section</h4>
+          <p style="font-size:0.85rem; color:var(--ink-soft); margin:0;">
+            Read &rarr; Yield (<code style="font-family:var(--font-mono); background:var(--paper); padding:1px 4px;">time.sleep(0)</code>) &rarr; Write executes with zero interference.
+          </p>
+        </div>
+
+        <div style="background:var(--surface); border:1px solid var(--rule); padding:1.25rem; border-top:3px solid var(--ink-soft);">
+          <span class="mono" style="font-size:0.75rem; color:var(--ink-soft); text-transform:uppercase;">Step 3 &middot; Release</span>
+          <h4 style="font-size:1rem; margin:0.4rem 0 0.5rem 0; font-family:var(--font-sans);">Lock Released</h4>
+          <p style="font-size:0.85rem; color:var(--ink-soft); margin:0;">
+            Lock opens, handing off execution to the next waiting thread in an orderly, serialized fashion.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-top:2rem;">
+      <div style="display:flex; gap:1rem; align-items:center;">
+        <button id="btn-run-again-mutex" class="btn btn-primary" style="background:var(--success); border-color:var(--success);">
+          Run Again
+        </button>
+        <a href="/simulator" class="btn btn-secondary">Go to Simulator</a>
+      </div>
+      <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--ink-soft);">
+        Recorded at <span id="prev-timestamp">—</span> (ID #<span id="prev-id">—</span>)
+      </span>
+    </div>
+
+    <div id="prev-progress" class="loading-progress" aria-hidden="true"></div>
+  </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/prevention.js') }}"></script>
+{% endblock %}

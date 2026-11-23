@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Thread Simulator — RaceGuard{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <span class="eyebrow">Module I &middot; Interactive Concurrency Engine</span>
+  <h1>Thread Simulator</h1>
+  <p class="lead">Configure threads, operation and iterations, then observe real-time concurrency behavior.</p>
+  <hr class="header-divider">
+</header>
+
+<div class="grid-2-1">
+  <!-- Left: Form Frame -->
+  <section class="frame" aria-label="Simulation configuration">
+    <h2 style="font-size:1.4rem; margin-bottom:1.5rem;">Parameters</h2>
+
+    <form id="simulator-form">
+      <!-- Number of Threads -->
+      <div class="form-group">
+        <label for="input-threads" class="form-label">Number of Threads (1 – 64)</label>
+        <input type="number" id="input-threads" name="threads" class="form-input" min="1" max="64" value="8" required>
+        <div id="thread-warning" class="form-help" style="display:none; color:var(--ink-soft); font-style:italic;">
+          Note: A race condition requires at least 2 concurrent threads to interleave.
+        </div>
+      </div>
+
+      <!-- Operation Toggle -->
+      <div class="form-group">
+        <span class="form-label">Operation</span>
+        <div class="segmented-control" role="radiogroup" aria-label="Operation selection">
+          <input type="radio" id="op-inc" name="operation" value="increment" checked>
+          <label for="op-inc">+ Increment</label>
+
+          <input type="radio" id="op-dec" name="operation" value="decrement">
+          <label for="op-dec">&minus; Decrement</label>
+        </div>
+      </div>
+
+      <!-- Iterations per Thread -->
+      <div class="form-group">
+        <label for="input-iterations" class="form-label">Iterations per Thread (1 – 50,000)</label>
+        <input type="number" id="input-iterations" name="iterations" class="form-input" min="1" max="50000" value="1000" required>
+        <div class="form-help">Total operations = Threads &times; Iterations (max 400,000)</div>
+      </div>
+
+      <!-- Execution Mode Toggle -->
+      <div class="form-group">
+        <span class="form-label">Execution Mode</span>
+        <div class="segmented-control" role="radiogroup" aria-label="Execution mode selection">
+          <input type="radio" id="mode-no-mutex" name="mode" value="no_mutex" checked>
+          <label for="mode-no-mutex">Without Mutex</label>
+
+          <input type="radio" id="mode-mutex" name="mode" value="mutex">
+          <label for="mode-mutex">With Mutex</label>
+        </div>
+      </div>
+
+      <!-- Live Expected Preview Line -->
+      <div id="preview-line" class="preview-line" aria-live="polite">
+        Expected: 0 + 8 &times; 1,000 = 8,000
+      </div>
+
+      <!-- Run Button & Progress Bar -->
+      <button type="submit" id="btn-run" class="btn btn-primary" style="width:100%;">
+        Run Simulation
+      </button>
+      <div id="run-progress" class="loading-progress" aria-hidden="true"></div>
+    </form>
+  </section>
+
+  <!-- Right: Result Frame -->
+  <section class="frame" id="result-container" aria-label="Simulation results" style="display:flex; flex-direction:column; justify-content:center;">
+    <!-- Empty State -->
+    <div id="result-empty" class="empty-state">
+      <div class="empty-state-icon">&empty;</div>
+      <h3 class="empty-state-title">No Simulation Executed</h3>
+      <p class="empty-state-text">
+        Configure the parameters on the left and click "Run Simulation" to observe real thread behavior.
+      </p>
+    </div>
+
+    <!-- Active Result View (Hidden Initially) -->
+    <div id="result-content" style="display:none;">
+      <!-- Dynamic Status Card inserted here -->
+      <div id="status-card-box"></div>
+
+      <!-- Stat Figures -->
+      <div class="stat-strip" style="margin-top:1.5rem; margin-bottom:1.5rem;">
+        <div class="stat-item">
+          <div id="res-expected" class="stat-number">—</div>
+          <div class="stat-label">Expected</div>
+        </div>
+        <div class="stat-item">
+          <div id="res-actual" class="stat-number">—</div>
+          <div class="stat-label">Actual</div>
+        </div>
+        <div class="stat-item">
+          <div id="res-lost" class="stat-number">—</div>
+          <div class="stat-label">Lost Updates</div>
+        </div>
+      </div>
+
+      <!-- Meta Details -->
+      <div style="font-family:var(--font-mono); font-size:0.8rem; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:1rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+        <span>Duration: <strong id="res-duration" style="color:var(--ink);">—</strong></span>
+        <span>Run ID: #<strong id="res-id" style="color:var(--ink);">—</strong></span>
+        <span>Time: <span id="res-time">—</span></span>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
+{% endblock %}
